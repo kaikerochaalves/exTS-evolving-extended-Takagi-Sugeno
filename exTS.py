@@ -37,7 +37,7 @@ class exTS:
         # Compute z
         z = np.concatenate((x.T, y[0].reshape(-1,1)), axis=1).T
         # Initialize the first rule
-        self.parameters = self.parameters.append(self.Initialize_First_Cluster(x, y[0], z), ignore_index = True)
+        self.Initialize_First_Cluster(x, y[0], z)
         # Update lambda of the first rule
         self.Update_Lambda(x)
         # Update the consequent parameters of the fist rule
@@ -70,7 +70,7 @@ class exTS:
                     self.Rule_Update(x, z)
                 else:
                     # Create a new rule
-                    self.parameters = self.parameters.append(self.Initialize_Cluster(x, z, k+1, i), ignore_index = True)
+                    self.Initialize_Cluster(x, z, k+1, i)
             # Remove unecessary rules
             if self.parameters.shape[0] > 1:
                 self.Remove_Rule(k+1)
@@ -108,11 +108,10 @@ class exTS:
         return self.OutputTestPhase
         
     def Initialize_First_Cluster(self, x, y, z):
-        NewRow = {'Center_Z': z, 'Center_X': x, 'C': self.hyperparameters.loc[0, 'InitialOmega'] * np.eye(x.shape[0] + 1), 'Theta': np.zeros((x.shape[0] + 1, 1)), 'Potential': self.InitialPotential, 'TimeCreation': 1., 'NumPoints': 1., 'mu': np.zeros([x.shape[0], 1]), 'Tau': 1., 'r':np.ones([x.shape[0], 1]), 'sigma':np.ones([x.shape[0], 1]), 'increment_center_x':np.zeros([x.shape[0], 1])}
+        self.parameters = pd.DataFrame([[z, x, self.hyperparameters.loc[0, 'InitialOmega'] * np.eye(x.shape[0] + 1), np.zeros((x.shape[0] + 1, 1)), self.InitialPotential, 1., 1., np.zeros([x.shape[0], 1]), 1., np.ones([x.shape[0], 1]), np.ones([x.shape[0], 1]), np.zeros([x.shape[0], 1])]], columns = ['Center_Z', 'Center_X', 'C', 'Theta', 'Potential', 'TimeCreation', 'NumPoints', 'mu', 'Tau', 'r', 'sigma', 'increment_center_x'])
         Output = y
         self.OutputTrainingPhase = np.append(self.OutputTrainingPhase, Output)
         self.ResidualTrainingPhase = np.append(self.ResidualTrainingPhase,(Output - y)**2)
-        return NewRow
     
     def Initialize_Cluster(self, x, z, k, i):
         Theta = np.zeros((x.shape[0] + 1, 1))
@@ -123,8 +122,8 @@ class exTS:
             sigma = sigma + self.parameters.loc[row, 'sigma'] 
             Theta = Theta + self.parameters.loc[row, 'Lambda'] * self.parameters.loc[row, 'Theta']
         sigma = sigma / self.parameters.shape[0]
-        NewRow = {'Center_Z': z, 'Center_X': x, 'C': self.hyperparameters.loc[0, 'InitialOmega'] * np.eye(x.shape[0] + 1), 'Theta': Theta, 'Potential': self.InitialPotential, 'TimeCreation': k, 'NumPoints': 1, 'mu': np.zeros([x.shape[0], 1]), 'Tau': 1., 'r':np.ones([x.shape[0], 1]), 'sigma':sigma, 'increment_center_x':np.zeros([x.shape[0], 1])}
-        return NewRow
+        NewRow = pd.DataFrame([[z, x, self.hyperparameters.loc[0, 'InitialOmega'] * np.eye(x.shape[0] + 1), Theta, self.InitialPotential, k, 1., np.zeros([x.shape[0], 1]), 1., np.ones([x.shape[0], 1]), sigma, np.zeros([x.shape[0], 1])]], columns = ['Center_Z', 'Center_X', 'C', 'Theta', 'Potential', 'TimeCreation', 'NumPoints', 'mu', 'Tau', 'r', 'sigma', 'increment_center_x'])
+        self.parameters = pd.concat([self.parameters, NewRow], ignore_index=True)
     
     def Update_Rule_Potential(self, z, i, k):
         self.parameters.at[i, 'Potential'] = ((k - 1) * self.parameters.loc[i, 'Potential']) / (k - 2 + self.parameters.loc[i, 'Potential'] + self.parameters.loc[i, 'Potential'] * self.Distance(z.T, self.parameters.loc[i, 'Center_Z'].T)**2)
@@ -152,7 +151,7 @@ class exTS:
         for row in self.parameters.index:
             dist.append(np.linalg.norm(self.parameters.loc[row, 'Center_Z'] - z))
             idx.append(row)
-        index = idx.index(dist.index(min(dist)))
+        index = idx[dist.index(min(dist))]
         self.parameters.at[index, 'NumPoints'] = self.parameters.loc[index, 'NumPoints'] + 1
         # Update the radius
         self.parameters.at[index, 'increment_center_x'] = self.parameters.loc[index, 'increment_center_x'] + ( self.parameters.at[index, 'Center_X'] - x )**2
