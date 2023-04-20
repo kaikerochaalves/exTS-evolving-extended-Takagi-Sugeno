@@ -30,4 +30,4 @@ The paper [2] has a complete review of the eFSs.
 
 [1] P. Angelov, X. Zhou, Evolving fuzzy systems from data streams in realtime, in: 2006 International Symposium on Evolving Fuzzy Systems, IEEE, 2006, pp. 29-35, http://dx.doi.org/10.1109/isefs.2006.251157.
 
-[2] K.S.T.R. Alves, E. P. Aguiar, A novel rule-based evolving Fuzzy System applied to the thermal modeling of power transformers. Appl. Soft Comput. 112 (2021) 107764-107764, https://doi.org/10.1016/j.asoc.2021.
+[2] K.S.T.R. Alves, E. P. Aguiar, A novel rule-based evolving Fuzzy System applied to the thermal modeling of power transformers. Appl. Soft Comput. 112 (2021) 107764-107764, https://doi.org/10.1016/j.asoc.2021.107764.
